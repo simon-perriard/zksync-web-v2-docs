@@ -4,19 +4,17 @@
 
 zkSync has has the following plugins for Hardhat:
 
-- [@matterlabs/hardhat-zksync-solc](./plugins.md#hardhat-zksync-solc) - used to compile contracts written in Solidity.
-- [@matterlabs/hardhat-zksync-vyper](./plugins.md#hardhat-zksync-vyper) - used to compile contracts written in Vyper.
-- [@matterlabs/hardhat-zksync-deploy](./plugins.md#hardhat-zksync-deploy) - used to deploy smart contracts.
-- [@matterlabs/hardhat-zksync-chai-matchers](./plugins.md#hardhat-zksync-chai-matchers) - adds zkSync-specific capabilities to the [Chai](https://www.chaijs.com/) assertion library for testing smart contracts.
-- [@matterlabs/hardhat-zksync-verify](./plugins.md#hardhat-zksync-verify) - used to verify smart contracts.
+- [@matterlabs/hardhat-zksync-solc](./hardhat-zksync-solc.md) - used to compile contracts written in Solidity.
+- [@matterlabs/hardhat-zksync-vyper](./hardhat-zksync-vyper.md) - used to compile contracts written in Vyper.
+- [@matterlabs/hardhat-zksync-deploy](./hardhat-zksync-deploy.md) - used to deploy smart contracts.
+- [@matterlabs/hardhat-zksync-chai-matchers](./hardhat-zksync-chai-matchers.md) - adds zkSync-specific capabilities to the [Chai](https://www.chaijs.com/) assertion library for testing smart contracts.
+- [@matterlabs/hardhat-zksync-verify](./hardhat-zksync-verify.md) - used to verify smart contracts.
 
 To learn more about Hardhat itself, check out [its official documentation](https://hardhat.org/getting-started/).
 
 This tutorial shows how to set up a zkSync Solidity project using Hardhat from scratch.
-If you are using Vyper, check out the [Vyper plugin documentation](./plugins.md#matterlabs-hardhat-zksync-vyper) or [this example](https://github.com/matter-labs/hardhat-zksync/tree/main/examples/vyper-example) in GitHub!
+If you are using Vyper, check out the [Vyper plugin documentation](./hardhat-zksync-vyper.md) or [this example](https://github.com/matter-labs/hardhat-zksync/tree/main/examples/vyper-example) in GitHub!
 
-<TocHeader />
-<TOC class="table-of-contents" :include-level="[2,3]" />
 
 ## Prerequisites
 
@@ -33,7 +31,7 @@ For this tutorial, the following programs must be installed:
 mkdir greeter-example
 cd greeter-example
 yarn init -y
-yarn add -D typescript ts-node @types/node ethers @ethersproject/hash @ethersproject/web zksync-web3 hardhat @matterlabs/hardhat-zksync-solc @matterlabs/hardhat-zksync-deploy
+yarn add -D typescript ts-node @types/node ethers@^5.7.2 zksync-web3@^0.13.1 @ethersproject/hash @ethersproject/web hardhat @matterlabs/hardhat-zksync-solc @matterlabs/hardhat-zksync-deploy
 ```
 
 The `typescript`, `ts-node` and `@types/node` dependencies are optional - plugins will work fine in a vanilla JavaScript environment. Although, please note that this tutorial _does_ use TypeScript.
@@ -54,7 +52,7 @@ import "@matterlabs/hardhat-zksync-solc";
 
 module.exports = {
   zksolc: {
-    version: "1.2.2",
+    version: "1.3.1",
     compilerSource: "binary",
     settings: {},
   },
@@ -67,7 +65,7 @@ module.exports = {
     },
   },
   solidity: {
-    version: "0.8.16",
+    version: "0.8.17",
   },
 };
 ```
@@ -85,7 +83,7 @@ To learn more about each specific property in the `hardhat.config.ts` file, chec
 4. Create the `contracts/Greeter.sol` contract and paste the following code:
 
 ```solidity
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.0;
 
 contract Greeter {
@@ -176,12 +174,18 @@ export default async function (hre: HardhatRuntimeEnvironment) {
 7. After replacing the `WALLET-PRIVATE-KEY` text with the private key of your Ethereum wallet, run the script using the following command: `yarn hardhat deploy-zksync`. This script will:
 
 - Transfer 0.001 ETH from Goerli to zkSync.
-- Deploy the `Greeting` contract with the message "Hi there!" to [zkSync testnet](https://v2-docs.zksync.io/dev/fundamentals/testnet.html).
+- Deploy the `Greeting` contract with the message "Hi there!" to [zkSync Era Testnet](../../dev/fundamentals/interacting.md).
 - Retrieve the message from the contract calling the `greet()` method.
 - Update the greet message in the contract with the `setGreeting()` method.
 - Retrieve the message from the contract again.
 
-**Congratulations! Your Hardhat project is now running on zkSync 2.0 testnet 🎉**
+**Congratulations! Your Hardhat project is now running on zkSync Era Testnet 🎉**
+
+::: tip Request-Rate Exceeded message
+
+This message is caused by using the default RPC endpoints provided by ethers. To avoid this, use your own Goerli RPC endpoint.You can [find multiple node providers here](https://github.com/arddluma/awesome-list-rpc-nodes-providers).
+
+:::
 
 ## Learn more
 

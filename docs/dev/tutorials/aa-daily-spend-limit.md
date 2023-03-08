@@ -1,19 +1,27 @@
 # Daily spend limit account
 
-In this tutorial, we'll create smart contract account with a daily spend limit thanks to the Account Abstraction support on zkSync.
+In this tutorial, we'll create a smart contract account with a daily spend limit thanks to the Account Abstraction support on zkSync.
 
-<TocHeader />
-<TOC class="table-of-contents" :include-level="[2,3]" />
+
+
+
+::: warning
+
+Please note that breaking changes were introduced in `zksync-web3 ^0.13.0`. The API layer now operates with `gas` and the `ergs` concept is only used internally by the VM. 
+
+This tutorial will be updated shortly to reflect those changes.
+
+:::
 
 ## Prerequisite
 
-It is highly encouraged that you read [the basics of Account Abstraction on zkSync](https://v2-docs.zksync.io/dev/developer-guides/aa.html) and complete the [multisig account tutorial](https://v2-docs.zksync.io/dev/tutorials/custom-aa-tutorial.html) first.
+It is highly encouraged that you read [the basics of Account Abstraction on zkSync](../developer-guides/aa.md) and complete the [multisig account tutorial](./custom-aa-tutorial.md) first.
 
 Apart from that we'll build this project with [Node.js](https://nodejs.org/en/download/) and [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable) so make sure you have installed them.
 
 ## Installing dependencies
 
-We will use the [zkSync Hardhat plugins](https://v2-docs.zksync.io/api/hardhat/) to build, deploy, and interact with the smart contracts of this project.
+We will use the [zkSync Hardhat plugins](../../api/hardhat/) to build, deploy, and interact with the smart contracts of this project.
 
 First, let’s install all the dependencies that we'll need:
 
@@ -21,20 +29,26 @@ First, let’s install all the dependencies that we'll need:
 mkdir custom-spendlimit-tutorial
 cd custom-spendlimit-tutorial
 yarn init -y
-yarn add -D typescript ts-node ethers zksync-web3 hardhat @matterlabs/hardhat-zksync-solc @matterlabs/hardhat-zksync-deploy
+yarn add -D typescript ts-node ethers@^5.7.2 zksync-web3@^0.13.1 hardhat @matterlabs/hardhat-zksync-solc @matterlabs/hardhat-zksync-deploy
 ```
 
-Additionally, please install a few packages that allow us to utilize the [zkSync smart contracts](https://v2-docs.zksync.io/dev/developer-guides/contracts/system-contracts.html).
+::: tip
+
+The current version of `zksync-web3` uses `ethers v5.7.x` as a peer dependency. An update compatible with `ethers v6.x.x` will be released soon.
+
+:::
+
+Additionally, please install a few packages that allow us to utilize the [zkSync smart contracts](../developer-guides/system-contracts.md).
 
 ```shell
 yarn add @matterlabs/zksync-contracts @openzeppelin/contracts @openzeppelin/contracts-upgradeable
 ```
 
-Lastly, create `hardhat.config.ts` config file and the `contracts` and `deploy` folders like in the [quickstart tutorial](https://v2-docs.zksync.io/dev/developer-guides/hello-world.html).
+Lastly, create `hardhat.config.ts` config file and the `contracts` and `deploy` folders like in the [quickstart tutorial](../building-on-zksync/hello-world.md).
 
 ::: tip zksync-cli
 
-You can use the zkSync CLI to scaffold a project automatically. Find [more info about the zkSync CLI here](https://v2-docs.zksync.io/api/tools/zksync-cli/).
+You can use the zkSync CLI to scaffold a project automatically. Find [more info about the zkSync CLI here](../../api/tools/zksync-cli/).
 
 :::
 
@@ -158,7 +172,7 @@ Both `setSpendingLimit` and `removeSpendingLimit` can only be called by account 
 
 Specifically, `setSpendingLimit` sets a non-zero daily spending limit for a given token, and `removeSpendingLimit` disables the active daily spending limit by decreasing `limit` and `available` to 0 and setting `isEnabled` to false.
 
-`_isValidUpdate` returns false if the spending limit is not enabled and also throws an `Invalid Update` error if the user has spend some amount in the day (the available amount is different to the limit) or the function is called before 24 hours have passed since the last update. This ensures that users can't freely modify (increase or remove) the daily limit to spend more.
+`_isValidUpdate` returns false if the spending limit is not enabled and also throws an `Invalid Update` error if the user has spent some amount in the day (the available amount is different from the limit) or the function is called before 24 hours have passed since the last update. This ensures that users can't freely modify (increase or remove) the daily limit to spend more.
 
 ### Checking daily spending limit
 
@@ -221,7 +235,7 @@ Note: you might have noticed the comment `// L1 batch timestamp` above. The deta
 
 ### Full code
 
-Now, here is the complete code of the SpendLimit contract. But one thing to be noted is that the value of the ONE_DAY variable is set to `1 minutes` instead of `24 hours`. This is just for testing purposes (we don't want to wait a full day to see if it works!) so, please don't forget to change the value before for deploying the contract.
+Now, here is the complete code of the SpendLimit contract. But one thing to be noted is that the value of the ONE_DAY variable is set to `1 minutes` instead of `24 hours`. This is just for testing purposes (we don't want to wait a full day to see if it works!) so, please don't forget to change the value before deploying the contract.
 
 ```solidity
 
@@ -342,7 +356,7 @@ contract SpendLimit {
 
 That's pretty much for `SpendLimit.sol`. Now, we also need to create the account contract `Account.sol`, and the factory contract that deploys account contracts,`AAFactory.sol`.
 
-As noted earlier, those two contracts are mostly based on the implementations of [another tutorial about Account Abstraction](https://v2-docs.zksync.io/dev/tutorials/custom-aa-tutorial.html).
+As noted earlier, those two contracts are mostly based on the implementations of [another tutorial about Account Abstraction](./custom-aa-tutorial.md).
 
 We will not explain in depth how these contract work as they're similar to the ones used in the multisig account abstraction tutorial. The only difference is that our account will have a single signer instead of two.
 
@@ -507,7 +521,7 @@ contract Account is IAccount, IERC1271, SpendLimit { // imports SpendLimit contr
 }
 ```
 
-The `_executeTransaction` method is where we'll use the methods from the `SpendLimit.sol` contrac. If the ETH transaction value is non-zero, the Account contract calls `_checkSpendingLimit` to verify the allowance for spending.
+The `_executeTransaction` method is where we'll use the methods from the `SpendLimit.sol` contract. If the ETH transaction value is non-zero, the Account contract calls `_checkSpendingLimit` to verify the allowance for spending.
 
 ```solidity
 
@@ -518,7 +532,7 @@ if ( value > 0 ) {
 
 Since we want to set the spending limit of ETH in this example, the first argument in `_checkSpendingLimit` should be `address(ETH_TOKEN_SYSTEM_CONTRACT)`, which is imported from a system contract called `system-contracts/Constant.sol`.
 
-**Note1** : The formal ETH address on zkSync is `0x000000000000000000000000000000000000800a`, neither the well-known `0xEee...EEeE` used by protocols as a placeholder on Ethereum, nor the zero address `0x000...000`, which is what `zksync-web3` package([See](https://v2-docs.zksync.io/api/js/utils.html#the-address-of-ether)) provides as a more user-friendly alias.
+**Note1** : The formal ETH address on zkSync is `0x000000000000000000000000000000000000800a`, neither the well-known `0xEee...EEeE` used by protocols as a placeholder on Ethereum, nor the zero address `0x000...000`, which is what `zksync-web3` package ([See](../../api/js/utils.md#the-address-of-ether)) provides as a more user-friendly alias.
 
 **Note2** : SpendLimit is token-agnostic. Thus an extension is also possible: add a check for whether or not the execution is an ERC20 transfer by extracting the function selector in bytes from transaction calldata.
 
@@ -640,9 +654,9 @@ Account owner pk: 0x957aff65500eda28beb7130b7c1bc48f783556bb84fa6874d2204c1d66a0
 Account deployed on address 0x6b6B8ea196a6F27EFE408288a4FEeBE9A9e12005
 ```
 
-So, we are ready to try the functionality of the `SpendLimit` contract. For the test, now please open [zkSync2.0 testnet explorer](https://zksync2-testnet.zkscan.io/) and search for the deployed Account contract address to be able to track transactions and changes in the balance which we will see in the following sections.
+So, we are ready to try the functionality of the `SpendLimit` contract. For the test, now please open [zkSync Era Block Explorer](https://goerli.explorer.zksync.io/) and search for the deployed Account contract address to be able to track transactions and changes in the balance which we will see in the following sections.
 
-**TIP**: For contract verification, please refer to [this section of the documentation](https://v2-docs.zksync.io/dev/developer-guides/contracts/contract-verification.html).
+**TIP**: For contract verification, please refer to [this section of the documentation](../building-on-zksync/contracts/contract-verification.md).
 
 ## Set the daily spending limit
 
@@ -675,13 +689,13 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     nonce: await provider.getTransactionCount(ACCOUNT_ADDRESS),
     type: 113,
     customData: {
-      ergsPerPubdata: utils.DEFAULT_ERGS_PER_PUBDATA_LIMIT,
+      gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
     } as types.Eip712Meta,
     value: ethers.BigNumber.from(0),
   };
 
   setLimitTx.gasPrice = await provider.getGasPrice();
-  setLimitTx.gasLimit = await provider.estimateGas(setLimitTx);
+  setLimitTx.l2gasLimit = await provider.estimateGas(setLimitTx);
 
   const signedTxHash = EIP712Signer.getSignedDigest(setLimitTx);
   const signature = ethers.utils.arrayify(ethers.utils.joinSignature(owner._signingKey().signDigest(signedTxHash)));
@@ -735,11 +749,11 @@ export default async function (hre: HardhatRuntimeEnvironment) {
     nonce: await provider.getTransactionCount(ACCOUNT_ADDRESS),
     type: 113,
     customData: {
-      ergsPerPubdata: utils.DEFAULT_ERGS_PER_PUBDATA_LIMIT,
+      gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
     } as types.Eip712Meta,
     value: ethers.utils.parseEther("0.0051"), // 0.0051 fails but 0.0049 succeeds
     gasPrice: await provider.getGasPrice(),
-    gasLimit: ethers.BigNumber.from(20000000), // constant 20M since estimateGas() causes an error, and this tx consumes more than 15M at most
+    l2gasLimit: ethers.BigNumber.from(20000000), // constant 20M since estimateGas() causes an error, and this tx consumes more than 15M at most
     data: "0x",
   };
   const signedTxHash = EIP712Signer.getSignedDigest(ethTransferTx);
@@ -831,9 +845,9 @@ You can download the complete project [here](https://github.com/porco-rosso-j/da
 
 ## Learn more
 
-- To learn more about L1->L2 interaction on zkSync, check out the [documentation](https://v2-docs.zksync.io/dev/developer-guides/bridging/l1-l2.html).
-- To learn more about the zksync-web3 SDK, check out its [documentation](https://v2-docs.zksync.io/api/js).
-- To learn more about the zkSync hardhat plugins, check out their [documentation](https://v2-docs.zksync.io/api/hardhat).
+- To learn more about L1->L2 interaction on zkSync, check out the [documentation](../developer-guides/bridging/l1-l2.md).
+- To learn more about the zksync-web3 SDK, check out its [documentation](../../api/js).
+- To learn more about the zkSync hardhat plugins, check out their [documentation](../../api/hardhat).
 
 ## Credits
 

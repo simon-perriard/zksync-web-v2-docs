@@ -1,31 +1,28 @@
 # Web3 API
 
-zkSync 2.0 fully supports the standard [Ethereum JSON-RPC API](https://ethereum.org/en/developers/docs/apis/json-rpc/) and adds some L2-specific features.
+zkSync Era fully supports the standard [Ethereum JSON-RPC API](https://ethereum.org/en/developers/docs/apis/json-rpc/) and adds some L2-specific features.
 
 As long as the code does not involve deploying new smart contracts (they can only be deployed using EIP712 transactions, more on that [below](#eip712)), _no changes to the codebase are needed._
 
 It is possible to continue using the SDK that is currently in use. Users will continue paying fees in ETH, and the UX will be identical to the one on Ethereum.
 
-However, zkSync has its specifics, which this section describes.
-
-<TocHeader />
-<TOC class="table-of-contents" :include-level="[2,3]" />
+However, zkSync Era has its specifics, which this section describes.
 
 ## EIP712
 
 To specify additional fields, like the custom signature for custom accounts or to choose the paymaster, EIP712 transactions should be used. These transactions have the same fields as standard Ethereum transactions, but they also have fields that contain additional L2-specific data (`paymaster`, etc).
 
 ```json
-"ergsPerPubdata": "1212",
+"gasPerPubdata": "1212",
 "customSignature": "0x...",
 "paymasterParams": {
   "paymaster": "0x...",
   "paymasterInput": "0x..."
 },
-"factory_deps": ["0x..."]
+"factoryDeps": ["0x..."]
 ```
 
-- `ergsPerPubdata`: is a field that describes the maximal amount of ergs the user is willing to pay for a single byte of pubdata.
+- `gasPerPubdata`: is a field that describes the maximal amount of gas the user is willing to pay for a single byte of pubdata.
 - `customSignature` is a field with a custom signature, in case the signer's account is not EOA.
 - `paymasterParams` is a field with parameters for configuring the custom paymaster for the transaction. The address of the paymaster and the encoded input to call it are in the paymaster parameters.
 - `factory_deps` is a field that should be a non-empty array of `bytes`. For deployment transactions it should contain the bytecode of the contract being deployed. If the contract being deployed is a factory contract, i.e. it can deploy other contracts, the array should also contain the bytecodes of the contracts which can be deployed by it.
@@ -34,21 +31,21 @@ To let the server recognize EIP712 transactions, the `transaction_type` field is
 
 Instead of signing the RLP-encoded transaction, the user signs the following typed EIP712 structure:
 
-| Field name              | Type        |
-| ----------------------- | ----------- |
-| txType                  | `uint256`   |
-| from                    | `uint256`   |
-| to                      | `uint256`   |
-| ergsLimit               | `uint256`   |
-| ergsPerPubdataByteLimit | `uint256`   |
-| maxFeePerErg            | `uint256 `  |
-| maxPriorityFeePerErg    | `uint256`   |
-| paymaster               | `uint256`   |
-| nonce                   | `uint256`   |
-| value                   | `uint256`   |
-| data                    | `bytes`     |
-| factoryDeps             | `bytes32[]` |
-| paymasterInput          | `bytes`     |
+| Field name             | Type        |
+| ---------------------- | ----------- |
+| txType                 | `uint256`   |
+| from                   | `uint256`   |
+| to                     | `uint256`   |
+| gasLimit               | `uint256`   |
+| gasPerPubdataByteLimit | `uint256`   |
+| maxFeePerGas           | `uint256 `  |
+| maxPriorityFeePerGas   | `uint256`   |
+| paymaster              | `uint256`   |
+| nonce                  | `uint256`   |
+| value                  | `uint256`   |
+| data                   | `bytes`     |
+| factoryDeps            | `bytes32[]` |
+| paymasterInput         | `bytes`     |
 
 These fields are conveniently handled by our [SDK](./js/features.md).
 
@@ -76,17 +73,16 @@ Returns the fee for the transaction. The token in which the fee is calculated is
 
 ```json
 {
-  "ergs_limit": 100000000,
-  "ergs_price_limit": 10000,
-  "fee_token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-  "ergs_per_storage_limit": 100,
-  "ergs_per_pubdata_limit": 10
+  "gas_limit": 100000000,
+  "max_fee_per_gas": 10000,
+  "max_priority_fee_per_gas": 100,
+  "gas_per_pubdata_limit": 10
 }
 ``` -->
 
 ### `zks_getMainContract`
 
-Returns the address of the zkSync contract.
+Returns the address of the zkSync Era contract.
 
 ### Input parameters
 
@@ -110,7 +106,7 @@ None.
 
 ### `zks_getConfirmedTokens`
 
-Given `from` and `limit` return information about the confirmed tokens with IDs in the interval `[from..from+limit-1]`. "Confirmed" is the wrong word here, since a confirmed token has already been bridged through the default zkSync bridge.
+Given `from` and `limit` return information about the confirmed tokens with IDs in the interval `[from..from+limit-1]`. "Confirmed" is the wrong word here, since a confirmed token has already been bridged through the default zkSync Era bridge.
 
 The tokens are returned in alphabetical order by their symbols, so a token's id is just its place in an array of tokens that has been sorted by symbols.
 
@@ -180,7 +176,7 @@ Otherwise, the object of the following format is returned:
 
 The `id` is the position of the leaf in the Merkle tree of L2->L1 messages for the block. The `proof` is the Merkle proof for the message, while the `root ` is the root of the Merkle tree of L2->L1 messages. Please note, that the Merkle tree uses _sha256_ for the trees.
 
-You do not need to care about the intrinsics, since the returned `id` and `proof` can be used right away for interacting with the zkSync smart contract.
+You do not need to care about the intrinsics, since the returned `id` and `proof` can be used right away for interacting with the zkSync Era smart contract.
 
 A nice example of using this endpoint via our SDK can be found [here](../dev/developer-guides/bridging/l2-l1.md).
 
@@ -203,11 +199,11 @@ Given a block, a sender, a message, and an optional message log index in the blo
 | block           | `uint32`                | The number of the block where the message was emitted.                                                                                                                                                                                                             |
 | sender          | `address`               | The sender of the message (i.e. the account that called the L1Messenger system contract).                                                                                                                                                                          |
 | msg             | `bytes32`               | The keccak256 hash of the sent message.                                                                                                                                                                                                                            |
-| l2_log_position | `uint256` &#124; `null` | The index in the block of the event that was emitted by the [L1Messenger](../dev/developer-guides/contracts/system-contracts.md#il1messenger) when submitting this message. If it is ommitted, the proof for the first message with such content will be returned. |
+| l2_log_position | `uint256` &#124; `null` | The index in the block of the event that was emitted by the [L1Messenger](../dev/developer-guides/system-contracts.md#l1messenger) when submitting this message. If it is omitted, the proof for the first message with such content will be returned. |
 
 ### Output format
 
-The same as in [zks_getL2ToL1LogProof](#output-format-4).
+The same as in [zks_getL2ToL1LogProof](#zks-getl2tol1logproof).
 
 ::: warning
 
@@ -358,13 +354,12 @@ Don't want to document (at least for now):
 
 ## PubSub API
 
-
-zkSync is fully compatible with [Geth's pubsub API](https://geth.ethereum.org/docs/rpc/pubsub), except for the `syncing` subscription. This is because nodes on the zkSync network are technically always synchronized.
+zkSync is fully compatible with [Geth's pubsub API](https://geth.ethereum.org/docs/interacting-with-geth/rpc/pubsub), except for the `syncing` subscription. This is because nodes on the zkSync network are technically always synchronized.
 
 The WebSocket URL is `wss://zksync2-testnet.zksync.dev/ws`.
 
 ::: tip
 
-You can use the websocket endpoint to handle smart contract events, as detailed [in this section of the docs](../dev/developer-guides/building-on-zksync/events.md).
+You can use the websocket endpoint to handle smart contract events, as detailed [in this section of the docs](../dev/building-on-zksync/events.md).
 
 :::

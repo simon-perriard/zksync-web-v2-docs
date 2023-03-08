@@ -1,11 +1,24 @@
 # Getting started
 
-<TocHeader />
-<TOC class="table-of-contents" :include-level="[2,3]" />
+In this guide we will demonstrate how to:
+
+1. Connect to the zkSync network.
+2. Deposit assets from Ethereum into zkSync.
+3. Check balances.
+4. Transfer and withdraw funds (native and ERC20 tokens).
+5. Deploy a smart contract.
+6. Deploy a smart contract with create2.
+
+
+::: warning
+
+This section of the documentation is under review to reflect the changes made to the system contracts ([see changelog](../../dev/troubleshooting/changelog.md)). A revised version will be available shortly.
+
+:::
 
 ## Adding dependencies
 
-To install zksync 2.0, run the command below in your terminal.
+To install zkSync Era, run the command below in your terminal.
 
 ```console
 pip install zksync2
@@ -25,10 +38,10 @@ The SDK supports the mainnet, and goerli networks.
 
 ## Examples
 
-Once you instantiate the SDK, you can use it to access your zkSync contracts. You can use the SDK's contract getter functions like; 
-
+Once you instantiate the SDK, you can use it to access your zkSync contracts. You can use the SDK's contract getter functions like;
 
 ### Deposit funds
+
 This is an example of how to deposit assets from Ethereum account to zkSync account:
 
 ```python
@@ -65,7 +78,6 @@ if __name__ == "__main__":
     deposit()
 
 ```
-
 
 ### Check balance
 
@@ -143,7 +155,7 @@ if __name__ == "__main__":
 
 ### Transfer funds (ERC20 tokens)
 
-This example below shows how you can tranfer ERC20 tokens.
+This example below shows how you can transfer ERC20 tokens.
 
 ```python
 from zksync2.manage_contracts.erc20_contract import ERC20FunctionEncoder
@@ -196,6 +208,7 @@ if __name__ == "__main__":
 ```
 
 ### Withdraw funds (Native coins)
+
 This example show how to withdraw funds from zkSync.
 
 ```python
@@ -254,11 +267,13 @@ if __name__ == "__main__":
 ```
 
 ### Deploy a smart contract
+
 With zkSync, you can deploy a contract using the create method, by simply building the contract into a binary format and deploying it to the zkSync network.
 
 In the next steps, we will guide you through how it works.
 
 #### Step1: Create a contract
+
 Here is a simple contract:
 
 ```solidity
@@ -287,6 +302,7 @@ After compilation there must be 2 files with:
 - contract abi in json format
 
 #### Step 2: Deploy the contract
+
 To deploy the contract, contract ABI is needed for calling its methods in the standard web3 way.
 
 In some cases, you would need to get the contract address before deploying it.
@@ -404,8 +420,8 @@ if __name__ == "__main__":
 ```
 
 #### Deploy contract with method create2
-This example show how you can deploy contract using the create2 method.
 
+This example show how you can deploy contract using the create2 method.
 
 ```python
 import os
